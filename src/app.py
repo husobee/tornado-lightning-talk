@@ -10,19 +10,24 @@ Example tornado application, for OSS lightning talk
 """
 
 from tornado import ioloop, web
-from models import blocky_crypto_process
+from models import BlockyCrypto
 import json
 
 class HelloHandler(web.RequestHandler):
+
+    def _blocky_crypto_process_callback(self, result):
+        self.set_status(200) # set the response status when we get the result back
+        self.write(json.dumps(dict(hello=result.result()))) #write the json in the response body
+        self.finish() # finish the asynch call
+
+    @web.asynchronous
     def get(self):
-        result = None
         try:
-            result = blocky_crypto_process("world")
+            BlockyCrypto().blocky_crypto_process("world", callback=self._blocky_crypto_process_callback) # call our new blocky crypto instance
         except Exception as e:
             self.set_status(500)
             self.write("An Exception has occurred: {0}".format(e))
-        self.set_status(200)
-        self.write(json.dumps(dict(hello=result)))
+            self.finish()
 
 application = web.Application([ # here is our url/handler mappings, application url routing
     (r"/hello/", HelloHandler), # main handler takes a url parm, and we are passing session to initialize
