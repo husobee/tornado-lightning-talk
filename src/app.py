@@ -10,12 +10,19 @@ Example tornado application, for OSS lightning talk
 """
 
 from tornado import ioloop, web
+from models import blocky_crypto_process
 import json
 
 class HelloHandler(web.RequestHandler):
     def get(self):
+        result = None
+        try:
+            result = blocky_crypto_process("world")
+        except Exception as e:
+            self.set_status(500)
+            self.write("An Exception has occurred: {0}".format(e))
         self.set_status(200)
-        self.write(json.dumps(dict(hello="world")))
+        self.write(json.dumps(dict(hello=result)))
 
 application = web.Application([ # here is our url/handler mappings, application url routing
     (r"/hello/", HelloHandler), # main handler takes a url parm, and we are passing session to initialize
